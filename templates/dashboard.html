@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body { font-family: Arial; padding: 50px; text-align: center; }
+        a.button {
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Welcome {{ user }}</h2>
+
+<p>You are logged in successfully.</p>
+
+<!-- QUIZ LINK -->
+<p><a href="/quiz" class="button">Take SQL Quiz</a></p>
+
+<!-- LOGOUT LINK -->
+<p><a href="/logout" class="button" style="background-color:#f44336;">Logout</a></p>
+
+</body>
+</html>
