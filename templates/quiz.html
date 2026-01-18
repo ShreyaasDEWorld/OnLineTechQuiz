@@ -1,3 +1,8 @@
+<!-- TIMER -->
+<div style="font-size:18px; color:red; margin-bottom:20px;">
+    Time Left: <span id="timer"></span>
+</div>
+
 <form method="POST">
     {% for q in questions %}
         <div class="question">
@@ -28,4 +33,27 @@
     </div>
 </form>
 
+<!-- TIMER SCRIPT -->
+<script>
+    let timeLeft = {{ quiz_time }};
 
+    function startTimer() {
+        let timer = setInterval(function () {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+
+            document.getElementById("timer").innerHTML =
+                minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                alert("Time is up! Submitting quiz.");
+                document.querySelector("form").submit();
+            }
+
+            timeLeft--;
+        }, 1000);
+    }
+
+    window.onload = startTimer;
+</script>

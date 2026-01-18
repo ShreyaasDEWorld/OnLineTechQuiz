@@ -7,7 +7,7 @@ from psycopg2 import errors
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 
-#QUIZ_TIME_SECONDS = 300   # 5 minutes
+QUIZ_TIME_SECONDS = 300   # 5 minutes
 
 # =========================
 # CREATE FLASK APP
@@ -248,7 +248,7 @@ def dashboard():
 # =========================
 # QUIZ ROUTE
 # =========================
-QUIZ_TIME_SECONDS = 300   # 5 minutes
+#QUIZ_TIME_SECONDS = 300   # 5 minutes
 
 @app.route("/quiz", methods=["GET", "POST"])
 def quiz():
@@ -368,7 +368,7 @@ def quiz_result():
     )
 
 # =========================
-#View past resule
+#View past result
 # =========================
 @app.route("/my-results")
 def my_results():
