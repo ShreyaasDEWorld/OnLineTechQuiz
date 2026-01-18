@@ -1,37 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>SQL Quiz</title>
-    <style>
-        body { font-family: Arial; padding: 50px; }
-        form { max-width: 700px; margin: auto; }
-        .question { margin-bottom: 20px; }
-        .option { margin-left: 20px; }
-        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; }
-        .flash { color: green; text-align: center; margin-bottom: 20px; }
-    </style>
-</head>
-<body>
-    <h2>SQL Quiz Demo</h2>
+<form method="POST">
+    {% for q in questions %}
+        <div class="question">
+            <p><strong>Q{{ loop.index }}. {{ q[1] }}</strong></p>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="flash">{{ messages[0] }}</div>
-      {% endif %}
-    {% endwith %}
+            {% for i in range(1,5) %}
+                <div class="option">
+                    <input type="radio"
+                           name="question_{{ q[0] }}"
+                           value="{{ i }}"
+                           required>
+                    {{ q[i+1] }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endfor %}
 
-    <form method="POST">
-        {% for q in questions %}
-            <div class="question">
-                <p><strong>Q{{ loop.index }}. {{ q[1] }}</strong></p>
-                <div class="option"><input type="radio" name="question_{{ q[0] }}" value="1" required> {{ q[2] }}</div>
-                <div class="option"><input type="radio" name="question_{{ q[0] }}" value="2"> {{ q[3] }}</div>
-                <div class="option"><input type="radio" name="question_{{ q[0] }}" value="3"> {{ q[4] }}</div>
-                <div class="option"><input type="radio" name="question_{{ q[0] }}" value="4"> {{ q[5] }}</div>
-            </div>
-        {% endfor %}
-        <button type="submit">Submit Quiz</button>
-    </form>
-</body>
-</html>
+    <div style="margin-top:20px;">
+        {% if page > 1 %}
+            <a href="/quiz?page={{ page-1 }}">⬅ Previous</a>
+        {% endif %}
+
+        {% if page < total_pages %}
+            <button type="submit">Next ➡</button>
+        {% else %}
+            <button type="submit">Submit Quiz</button>
+        {% endif %}
+    </div>
+</form>
+
+

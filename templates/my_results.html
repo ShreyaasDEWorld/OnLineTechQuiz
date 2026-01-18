@@ -1,0 +1,19 @@
+<h2>My Quiz Results</h2>
+
+<table border="1" cellpadding="10">
+<tr>
+    <th>Score</th>
+    <th>Total</th>
+    <th>Date</th>
+</tr>
+
+{% for r in results %}
+<tr>
+    <td>{{ r[0] }}</td>
+    <td>{{ r[1] }}</td>
+    <td>{{ r[2] }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<a href="/dashboard">Back</a>

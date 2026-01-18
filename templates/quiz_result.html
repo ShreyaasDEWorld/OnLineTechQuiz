@@ -1,47 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Quiz Result</title>
-    <style>
-        body { font-family: Arial; padding: 50px; }
-        .question { margin-bottom: 20px; }
-        .correct { color: green; }
-        .wrong { color: red; }
-        .score { font-size: 20px; margin-bottom: 30px; }
-        a.button {
-            padding: 10px 20px;
-            background-color: #2196F3;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-    </style>
-</head>
-<body>
-    <h2>Quiz Result</h2>
+<h2>Quiz Result</h2>
+<h3>Your Score: {{ score }} / {{ total }}</h3>
 
-    <p class="score">You scored {{ score }} out of {{ total }}</p>
+{% for r in results %}
+    <p><strong>{{ loop.index }}. {{ r.question }}</strong></p>
+    <ul>
+        {% for opt in r.options %}
+            <li>{{ opt }}</li>
+        {% endfor %}
+    </ul>
+    <p>
+        Your Answer: {{ r.selected }} |
+        Correct Answer: {{ r.correct }}
+    </p>
+    <hr>
+{% endfor %}
 
-    {% for q in user_answers %}
-        <div class="question">
-            <p><strong>{{ loop.index }}. {{ q.question }}</strong></p>
-            <ul>
-                {% for i in range(4) %}
-                    {% set option_number = i + 1 %}
-                    <li
-                        {% if option_number == q.correct %}class="correct"{% endif %}
-                        {% if q.selected == option_number and q.selected != q.correct %}class="wrong"{% endif %}
-                    >
-                        {{ q.options[i] }}
-                        {% if option_number == q.correct %} (Correct){% endif %}
-                        {% if q.selected == option_number and q.selected != q.correct %} (Your answer){% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endfor %}
-
-    <a href="/dashboard" class="button">Back to Dashboard</a>
-</body>
-</html>
+<a href="/dashboard">Back to Dashboard</a>

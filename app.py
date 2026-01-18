@@ -7,6 +7,8 @@ from psycopg2 import errors
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 
+#QUIZ_TIME_SECONDS = 300   # 5 minutes
+
 # =========================
 # CREATE FLASK APP
 # =========================
@@ -246,52 +248,148 @@ def dashboard():
 # =========================
 # QUIZ ROUTE
 # =========================
+QUIZ_TIME_SECONDS = 300   # 5 minutes
+
 @app.route("/quiz", methods=["GET", "POST"])
 def quiz():
     if "user_id" not in session:
         return redirect("/login")
 
+    per_page = 5
+    page = int(request.args.get("page", 1))
+    offset = (page - 1) * per_page
+
     conn = get_db_connection()
     cur = conn.cursor()
-    # Fetch 5 questions
-    cur.execute("SELECT id, question, option1, option2, option3, option4, correct_option FROM test LIMIT 5")
+
+    # Total questions
+    cur.execute("SELECT COUNT(*) FROM test")
+    total_questions = cur.fetchone()[0]
+    total_pages = (total_questions + per_page - 1) // per_page
+
+    # Fetch questions for this page
+    cur.execute("""
+        SELECT id, question, option1, option2, option3, option4, correct_option
+        FROM test
+        ORDER BY id
+        LIMIT %s OFFSET %s
+    """, (per_page, offset))
     questions = cur.fetchall()
+
     cur.close()
     conn.close()
 
-    if request.method == "POST":
-        score = 0
-        total = len(questions)
-        user_answers = []
+    # Initialize session answers
+    if "quiz_answers" not in session:
+        session["quiz_answers"] = {}
 
-        # Loop through questions and check answers
+    # -----------------------
+    # HANDLE FORM SUBMIT
+    # -----------------------
+    if request.method == "POST":
         for q in questions:
             qid = str(q[0])
             selected = request.form.get(f"question_{qid}")
-            correct = q[6]  # correct_option
-
             if selected:
-                user_answers.append({
-                    "question": q[1],
-                    "selected": int(selected),
-                    "correct": correct,
-                    "options": [q[2], q[3], q[4], q[5]]
-                })
+                session["quiz_answers"][qid] = int(selected)
 
-                if int(selected) == correct:
-                    score += 1
-            else:
-                user_answers.append({
-                    "question": q[1],
-                    "selected": None,
-                    "correct": correct,
-                    "options": [q[2], q[3], q[4], q[5]]
-                })
+        session.modified = True
 
-        # Pass user_answers and score to result template
-        return render_template("quiz_result.html", score=score, total=total, user_answers=user_answers)
+        if page >= total_pages:
+            return redirect("/quiz-result")
+        else:
+            return redirect(f"/quiz?page={page+1}")
 
-    return render_template("quiz.html", questions=questions)
+    # ✅ THIS IS WHERE YOUR CODE GOES
+    return render_template(
+        "quiz.html",
+        questions=questions,
+        page=page,
+        total_pages=total_pages,
+        quiz_time=QUIZ_TIME_SECONDS
+    )
+
+
+# =========================
+# quiz-result ROUTE
+# =========================
+@app.route("/quiz-result")
+def quiz_result():
+    if "quiz_answers" not in session:
+        return redirect("/quiz")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, question, option1, option2, option3, option4, correct_option
+        FROM test
+        ORDER BY id
+    """)
+    questions = cur.fetchall()
+
+    score = 0
+    results = []
+
+    for q in questions:
+        qid = str(q[0])
+        selected = session["quiz_answers"].get(qid)
+        correct = q[6]
+
+        if selected == correct:
+            score += 1
+
+        results.append({
+            "question": q[1],
+            "selected": selected,
+            "correct": correct,
+            "options": [q[2], q[3], q[4], q[5]]
+        })
+
+    total = len(questions)
+
+    # 🔥 STORE RESULT IN DB
+    cur.execute("""
+        INSERT INTO quiz_results (user_id, score, total)
+        VALUES (%s, %s, %s)
+    """, (session["user_id"], score, total))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    session.pop("quiz_answers")
+
+    return render_template(
+        "quiz_result.html",
+        score=score,
+        total=total,
+        results=results
+    )
+
+# =========================
+#View past resule
+# =========================
+@app.route("/my-results")
+def my_results():
+    if "user_id" not in session:
+        return redirect("/login")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT score, total, taken_at
+        FROM quiz_results
+        WHERE user_id=%s
+        ORDER BY taken_at DESC
+    """, (session["user_id"],))
+
+    results = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return render_template("my_results.html", results=results)
 
 
 # =========================
