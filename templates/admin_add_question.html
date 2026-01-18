@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Question</title>
+    <style>
+        body { font-family: Arial; padding: 40px; }
+        input, textarea, select {
+            width: 100%; padding: 10px; margin: 5px 0;
+        }
+        button {
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Add Quiz Question</h2>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <p style="color:green;">{{ messages[0] }}</p>
+  {% endif %}
+{% endwith %}
+
+<form method="POST">
+    <textarea name="question" placeholder="Enter question" required></textarea>
+
+    <input name="option1" placeholder="Option 1" required>
+    <input name="option2" placeholder="Option 2" required>
+    <input name="option3" placeholder="Option 3" required>
+    <input name="option4" placeholder="Option 4" required>
+
+    <select name="correct_option" required>
+        <option value="">Correct Option</option>
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+        <option value="3">Option 3</option>
+        <option value="4">Option 4</option>
+    </select>
+
+    <button type="submit">Add Question</button>
+</form>
+
+<p><a href="/dashboard">Back to Dashboard</a></p>
+
+</body>
+</html>

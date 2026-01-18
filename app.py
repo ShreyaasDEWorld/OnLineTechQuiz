@@ -26,6 +26,81 @@ def get_db_connection():
         password="Admin",
         port="5432"
     )
+#==========================
+#Admin Required
+#==========================
+def admin_required():
+    if "user_id" not in session or not session.get("is_admin"):
+        flash("Admin access required")
+        return False
+    return True
+
+# =====================
+# Admin Route
+# ==========================
+@app.route("/admin/add-question", methods=["GET", "POST"])
+def add_question():
+    if not admin_required():
+        return redirect("/dashboard")
+
+    if request.method == "POST":
+        question = request.form["question"]
+        option1 = request.form["option1"]
+        option2 = request.form["option2"]
+        option3 = request.form["option3"]
+        option4 = request.form["option4"]
+        correct_option = int(request.form["correct_option"])
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO test
+            (question, option1, option2, option3, option4, correct_option)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (question, option1, option2, option3, option4, correct_option))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        flash("Question added successfully!")
+        return redirect("/admin/add-question")
+
+    return render_template("admin_add_question.html")
+# =========================
+# LOGIN ROUTE
+# =========================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        user_name = request.form["user_name"]
+        password = request.form["password"]
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Only verified users can login
+        cur.execute("""
+            SELECT user_id, password,is_admin FROM login_data
+            WHERE user_name=%s AND email_verified=TRUE
+        """, (user_name,))
+        user = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        
+        if user and check_password_hash(user[1], password):
+            session["user_id"] = user[0]
+            session["user_name"] = user_name
+            session["is_admin"] = user[2]   # ✅ ADD THIS
+            return redirect("/dashboard")
+
+        else:
+            flash("Invalid login or email not verified")
+
+    return render_template("login.html")
 
 # =========================
 # OTP UTILITIES
@@ -128,36 +203,7 @@ def verify_signup_otp():
 
     return render_template("verify_otp.html")
 
-# =========================
-# LOGIN ROUTE
-# =========================
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        user_name = request.form["user_name"]
-        password = request.form["password"]
 
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        # Only verified users can login
-        cur.execute("""
-            SELECT user_id, password FROM login_data
-            WHERE user_name=%s AND email_verified=TRUE
-        """, (user_name,))
-        user = cur.fetchone()
-
-        cur.close()
-        conn.close()
-
-        if user and check_password_hash(user[1], password):
-            session["user_id"] = user[0]
-            session["user_name"] = user_name
-            return redirect("/dashboard")
-        else:
-            flash("Invalid login or email not verified")
-
-    return render_template("login.html")
 
 # =========================
 # FORGOT PASSWORD (OTP)
@@ -203,6 +249,7 @@ def forgot_password():
         return redirect("/verify-reset-otp")
 
     return render_template("forgot_password.html")
+
 
 
 # =========================

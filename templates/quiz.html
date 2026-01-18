@@ -2,6 +2,33 @@
 <div style="font-size:18px; color:red; margin-bottom:20px;">
     Time Left: <span id="timer"></span>
 </div>
+<div style="font-size:18px; color:red; margin-bottom:20px;">
+    Time Left: <span id="timer"></span>
+</div>
+
+<script>
+    let timeLeft = {{ quiz_time }};
+    const timerElement = document.getElementById("timer");
+
+    function startTimer() {
+        const interval = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                alert("Time is up! Submitting quiz.");
+                document.querySelector("form").submit();
+            } else {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent =
+                    minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+                timeLeft--;
+            }
+        }, 1000);
+    }
+
+    startTimer();
+</script>
+
 
 <form method="POST">
     {% for q in questions %}
@@ -57,3 +84,9 @@
 
     window.onload = startTimer;
 </script>
+<div style="font-size:18px; color:red; margin-bottom:20px;">
+    Time Left: <span id="timer"></span>
+</div>
+
+
+
